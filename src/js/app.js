@@ -3,13 +3,23 @@ import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
+import { uniqueId } from 'lodash';
 import render from './render.js';
 import ru from './locale/ru.js';
+import fetchRSS from './allorigins.js';
+import parse from './parser.js';
 
 const app = () => {
   const state = {
     formState: 'filling',
     inputValue: '',
+    feeds: [],
+    posts: [],
+    error: null,
+    uiState: {
+      modalPostId: null,
+      viewedPostsId: [],
+    },
   };
 
   const elements = {
@@ -21,7 +31,9 @@ const app = () => {
     posts: document.querySelector('.posts'),
     modalHeader: document.querySelector('.modal-header'),
     modalBody: document.querySelector('.modal-body'),
+    modalFooter: document.querySelector('.modal-footer'),
     modalButtons: document.querySelectorAll('.btn-outline-primary'),
+    modalReadMoreButton: document.querySelector('.btn-primary'),
   };
 
   yup.setLocale({
@@ -42,6 +54,27 @@ const app = () => {
       ru,
     },
   }).then(() => {
+    const updatePosts = (watchedState) => {
+      const promises = watchedState.feeds.map((feed) => fetchRSS(feed.link)
+        .then((xml) => {
+          const addedPostLinks = watchedState.posts.map((post) => post.link);
+          const { posts } = parse(xml, feed.link);
+          const newPosts = posts.filter((post) => !addedPostLinks.includes(post.link));
+          const postsWithId = newPosts.map((post) => ({
+            ...post,
+            id: uniqueId(),
+            feedId: feed.id,
+          }));
+          watchedState.posts.unshift(...postsWithId);
+          return null;
+        })
+        .catch((error) => {
+          console.error(`Ошибка при получении данных из ${feed.id}:`, error);
+          return null;
+        }));
+      return Promise.all(promises).finally(() => setTimeout(updatePosts, 5000, watchedState));
+    };
+
     const watchedState = onChange(state, (path) => render(path, state, elements, i18n));
 
     const validateURL = (url, existingLinks) => {
@@ -64,7 +97,8 @@ const app = () => {
       const url = formData.get('url');
       watchedState.inputValue = url;
 
-      validateURL(url, [])
+      const existingLinks = watchedState.feeds.map(feed => feed.link);
+      validateURL(url, existingLinks)
         .then((error) => {
           if (error) {
             watchedState.error = error;
@@ -75,10 +109,34 @@ const app = () => {
             return url;
           }
         })
-        .then(() => {
+        .then((link) => {
           watchedState.formState = 'sending';
+          fetchRSS(link)
+            .then((xml) => {
+              const { feed, posts } = parse(xml);
+              const feedId = uniqueId();
+              watchedState.feeds.push({ ...feed, id: feedId, link: url });
+              const postsWithId = posts.map((post) => ({ ...post, id: uniqueId(), feedId }));
+              watchedState.posts.unshift(...postsWithId);
+              watchedState.formState = 'valid';
+            })
+            .catch((error) => {
+              watchedState.error = error.message;
+              watchedState.formState = 'invalid';
+              throw new Error(watchedState.error);
+            });
         });
     });
+
+    elements.posts.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-outline-primary')) {
+        e.preventDefault();
+        watchedState.uiState.modalPostId = e.target.dataset.id;
+        watchedState.uiState.viewedPostsId.push(e.target.dataset.id);
+      }
+    });
+
+    updatePosts(watchedState);
   });
 };
 
