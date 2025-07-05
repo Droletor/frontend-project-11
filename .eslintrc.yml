@@ -1,11 +1,10 @@
 extends:
-  - "airbnb-base"
-  - "jest"
+  - "stylistic"
 env:
   node: true
 plugins:
   - "eslint-plugin-import"
-  - 'plugin:jest/recommended'
+  - 'plugin:stylistic/recommended'
 parserOptions:
   ecmaVersion: latest
 rules:

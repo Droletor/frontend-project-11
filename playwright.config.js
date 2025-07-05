@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/semi */
 import { defineConfig, devices } from '@playwright/test';
 
 /**

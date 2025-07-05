@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/semi */
 import axios from 'axios';
 
 const getProxyUrl = (url) => {
