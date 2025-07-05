@@ -18,6 +18,7 @@ test('validUrl', async ({ page }) => {
   await expect(page.getByRole('main')).toContainText('RSS успешно загружен');
   await expect(page.getByRole('heading', { name: 'Посты' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Фиды' })).toBeVisible();
-  await page.getByRole('listitem').filter({ visible: true }).first().getByRole('button').click();
+  await page.getByRole('listitem').filter({ visible: true }).first().getByRole('button')
+    .click();
   await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
 });
