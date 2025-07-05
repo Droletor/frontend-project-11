@@ -22,7 +22,7 @@ const app = () => {
     modalButtons: document.querySelectorAll('.btn-outline-primary'),
   };
 
-  const watchedState = onChange(state, path => render(path, state, elements));
+  const watchedState = onChange(state, (path) => render(path, state, elements));
 
   const validateURL = (url, existingLinks) => {
     const schema = yup.string().required().url().notOneOf(existingLinks);
@@ -30,9 +30,7 @@ const app = () => {
     return schema
       .validate(url)
       .then(() => null)
-      .catch((error) => {
-        return error;
-      });
+      .catch((error) => error);
   };
 
   elements.form.addEventListener('submit', (e) => {
@@ -49,13 +47,12 @@ const app = () => {
           watchedState.error = error;
           watchedState.formState = 'invalid';
           throw new Error(error);
-        }
-        else {
+        } else {
           watchedState.error = null;
           return url;
         }
       })
-      .then((link) => {
+      .then(() => {
         watchedState.formState = 'sending';
       });
   });

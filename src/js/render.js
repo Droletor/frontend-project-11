@@ -6,7 +6,7 @@ const renderInput = (state, elements) => {
       elements.feedback.textContent = '';
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.remove('text-success');
-      break
+      break;
     case 'valid':
       elements.submit.disabled = false;
       elements.input.value = '';
@@ -14,7 +14,7 @@ const renderInput = (state, elements) => {
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.add('text-success');
       elements.feedback.textContent = 'status.success';
-      break
+      break;
     case 'invalid':
       elements.submit.disabled = false;
       elements.input.value = state.inputValue;
@@ -22,7 +22,7 @@ const renderInput = (state, elements) => {
       elements.feedback.textContent = 'state.error';
       elements.feedback.classList.remove('text-success');
       elements.feedback.classList.add('text-danger');
-      break
+      break;
     case 'sending':
       elements.submit.disabled = true;
       elements.input.value = state.inputValue;
@@ -30,11 +30,11 @@ const renderInput = (state, elements) => {
       elements.feedback.textContent = '';
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.remove('text-success');
-      break
+      break;
     default:
-      break
+      break;
   }
-}
+};
 
 export default (path, state, elements) => {
   switch (path) {
@@ -44,4 +44,4 @@ export default (path, state, elements) => {
     default:
       break;
   }
-}
+};
