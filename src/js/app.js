@@ -97,7 +97,7 @@ const app = () => {
       const url = formData.get('url');
       watchedState.inputValue = url;
 
-      const existingLinks = watchedState.feeds.map(feed => feed.link);
+      const existingLinks = watchedState.feeds.map((feed) => feed.link);
       validateURL(url, existingLinks)
         .then((error) => {
           if (error) {
