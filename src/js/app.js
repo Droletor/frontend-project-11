@@ -2,7 +2,9 @@ import '../scss/styles.scss';
 import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
+import i18next from 'i18next';
 import render from './render.js';
+import ru from './locale/ru.js';
 
 const app = () => {
   const state = {
@@ -22,39 +24,61 @@ const app = () => {
     modalButtons: document.querySelectorAll('.btn-outline-primary'),
   };
 
-  const watchedState = onChange(state, (path) => render(path, state, elements));
+  yup.setLocale({
+    string: {
+      required: () => ({ key: 'errors.empty' }),
+      url: () => ({ key: 'errors.url' }),
+    },
+    mixed: {
+      notOneOf: () => ({ key: 'errors.alreadyOnTheList' }),
+    },
+  });
 
-  const validateURL = (url, existingLinks) => {
-    const schema = yup.string().required().url().notOneOf(existingLinks);
+  const i18n = i18next.createInstance();
+  i18n.init({
+    lng: 'ru',
+    debug: true,
+    resources: {
+      ru,
+    },
+  }).then(() => {
+    const watchedState = onChange(state, (path) => render(path, state, elements, i18n));
 
-    return schema
-      .validate(url)
-      .then(() => null)
-      .catch((error) => error);
-  };
+    const validateURL = (url, existingLinks) => {
+      const schema = yup.string().required().url().notOneOf(existingLinks);
 
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
+      return schema
+        .validate(url)
+        .then(() => null)
+        .catch((error) => {
+          const translationKey = error.message.key || 'unknown';
+          return translationKey;
+        });
+    };
 
-    watchedState.formState = 'filling';
-    const formData = new FormData(e.target);
-    const url = formData.get('url');
-    watchedState.inputValue = url;
+    elements.form.addEventListener('submit', (e) => {
+      e.preventDefault();
 
-    validateURL(url, [])
-      .then((error) => {
-        if (error) {
-          watchedState.error = error;
-          watchedState.formState = 'invalid';
-          throw new Error(error);
-        } else {
-          watchedState.error = null;
-          return url;
-        }
-      })
-      .then(() => {
-        watchedState.formState = 'sending';
-      });
+      watchedState.formState = 'filling';
+      const formData = new FormData(e.target);
+      const url = formData.get('url');
+      watchedState.inputValue = url;
+
+      validateURL(url, [])
+        .then((error) => {
+          if (error) {
+            watchedState.error = error;
+            watchedState.formState = 'invalid';
+            throw new Error(error);
+          } else {
+            watchedState.error = null;
+            return url;
+          }
+        })
+        .then(() => {
+          watchedState.formState = 'sending';
+        });
+    });
   });
 };
 

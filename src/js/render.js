@@ -1,4 +1,4 @@
-const renderInput = (state, elements) => {
+const renderInput = (state, elements, i18n) => {
   switch (state.formState) {
     case 'filling':
       elements.submit.disabled = false;
@@ -13,13 +13,13 @@ const renderInput = (state, elements) => {
       elements.input.classList.remove('is-invalid');
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.add('text-success');
-      elements.feedback.textContent = 'status.success';
+      elements.feedback.textContent = i18n.t('status.success');
       break;
     case 'invalid':
       elements.submit.disabled = false;
       elements.input.value = state.inputValue;
       elements.input.classList.add('is-invalid');
-      elements.feedback.textContent = 'state.error';
+      elements.feedback.textContent = i18n.t(state.error);
       elements.feedback.classList.remove('text-success');
       elements.feedback.classList.add('text-danger');
       break;
@@ -36,10 +36,10 @@ const renderInput = (state, elements) => {
   }
 };
 
-export default (path, state, elements) => {
+export default (path, state, elements, i18n) => {
   switch (path) {
     case 'formState':
-      renderInput(state, elements);
+      renderInput(state, elements, i18n);
       break;
     default:
       break;
